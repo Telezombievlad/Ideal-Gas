@@ -1,0 +1,130 @@
+#pragma once
+
+//----------------------------------------------------------------------------
+//{ Includes
+//----------------------------------------------------------------------------
+
+	#include <vector>
+
+//}
+//----------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+//{ Model
+//----------------------------------------------------------------------------
+
+    class Model
+    {
+        public:
+
+            // Constructor && destructor:
+
+                Model(int x, int y, unsigned int width, unsigned int height, unsigned int startBallCount = 0);
+
+                ~Model();
+
+            // Functions:
+
+                Model& move();
+
+                Model& wallBounce();
+
+                Model& ballBounce();
+
+        private:
+
+            int x_;
+            int y_;
+
+            unsigned int width_;
+            unsigned int height_;
+
+			std::vector<Ball> ballArray_;
+	};
+
+	//----------------------------------------------------------------------------
+	//{ Constructor && destructor:
+	//----------------------------------------------------------------------------
+
+		Model::Model(int x, int y, unsigned int width, unsigned int height, unsigned int startBallCount /*= 0*/) :
+			x_(x),
+			y_(y),
+			width_ (width),
+			height_(height),
+			ballArray_(std::vector<Ball>(startBallCount, Ball({0, 0}, {0, 0}, 0, TX_BLACK, 0)))
+		{
+			for (std::vector<Ball>::iterator i = ballArray_.begin(); i != ballArray_.end(); i++)
+			{
+				*i = Ball({random(x, width), random(y, height)}, {random(-3, 3), random(-3, 3)}, 10, TX_GREEN, 10);
+			}
+		}
+
+		Model::~Model()
+		{
+			ballArray_.~vector();
+		}
+
+	//}
+	//----------------------------------------------------------------------------
+
+
+
+
+	//----------------------------------------------------------------------------
+	//{ Functions:
+	//----------------------------------------------------------------------------
+
+		Model& Model::move()
+		{
+			for (std::vector<Ball>::iterator i = ballArray_.begin(); i != ballArray_.end(); i++)
+			{
+				i->coords += i->speed;
+			}
+
+			return *this;
+		}
+
+		Model& Model::wallBounce()
+		{
+			for (std::vector<Ball>::iterator i = ballArray_.begin(); i != ballArray_.end(); i++)
+			{
+				if (i->coords.x - i->radius < x_)
+				{
+					i->coords.x = x_ + i->radius;
+					i->speed.x = -i->speed.x;
+				}
+
+				if (i->coords.x + i->radius > x_ + width_)
+				{
+					i->coords.x = x_ - i->radius + width_;
+					i->speed.x = -i->speed.x;
+				}
+
+				if (i->coords.y - i->radius < y_)
+				{
+					i->coords.y = y_ + i->radius;
+					i->speed.y = -i->speed.y;
+				}
+
+				if (i->coords.y + i->radius > y_ + height_)
+				{
+					i->coords.y = y_ - i->radius + height_;
+					i->speed.y = -i->speed.y;
+				}
+			}
+
+			return *this;
+		}
+
+		Model& Model::ballBounce()
+		{
+            return *this;
+		}
+
+	//}
+	//----------------------------------------------------------------------------
+
+
+//}
+//----------------------------------------------------------------------------

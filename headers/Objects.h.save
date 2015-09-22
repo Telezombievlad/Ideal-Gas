@@ -1,0 +1,326 @@
+#pragma once
+
+//----------------------------------------------------------------------------
+//{ Vector
+//----------------------------------------------------------------------------
+
+    struct Vector
+    {
+        public:
+
+            // Functions:
+
+                double length() const;
+
+                Vector normalized() const;
+                Vector& normalize();
+
+            // Operators:
+
+                Vector operator-() const;
+
+                Vector& operator+=(const Vector& vector);
+                Vector& operator-=(const Vector& vector);
+
+                Vector operator+(const Vector& vector) const;
+                Vector operator-(const Vector& vector) const;
+
+                Vector& operator*=(double koefficient);
+                Vector& operator/=(double koefficient);
+
+                Vector operator*(double koefficient) const;
+                Vector operator/(double koefficient) const;
+
+                double operator*(const Vector& vector) const;
+
+            // Variables:
+
+                double x, y;
+    };
+
+    //----------------------------------------------------------------------------
+    //{ Functions
+    //----------------------------------------------------------------------------
+
+        double Vector::length() const
+        {
+            return sqrt(x * x + y * y);
+        }
+
+        Vector Vector::normalized() const
+        {
+            double vectorLength = length();
+
+            return {x / vectorLength, y / vectorLength};
+        }
+
+        Vector& Vector::normalize()
+        {
+            double vectorLength = length();
+
+            x /= vectorLength;
+            y /= vectorLength;
+
+            return *this;
+        }
+
+        inline Vector Vector::projectOnVector(Vector newCoordinates) const
+        {
+            return {}
+        }
+
+
+    //}
+    //-----------------------------------------------------------------------------
+
+
+    //----------------------------------------------------------------------------
+    //{ Operators
+    //----------------------------------------------------------------------------
+
+        Vector Vector::operator-() const
+        {
+            return {-x, -y};
+        }
+
+        Vector& Vector::operator+=(const Vector& vector)
+        {
+            x += vector.x;
+            y += vector.y;
+
+            return *this;
+        }
+
+        Vector& Vector::operator-=(const Vector& vector)
+        {
+            x -= vector.x;
+            y -= vector.y;
+
+            return *this;
+        }
+
+        Vector Vector::operator+(const Vector& vector) const
+        {
+            Vector toReturn = *this;
+
+            toReturn += vector;
+
+            return toReturn;
+        }
+
+        Vector Vector::operator-(const Vector& vector) const
+        {
+            Vector toReturn = *this;
+
+            toReturn -= vector;
+
+            return toReturn;
+        }
+
+        Vector& Vector::operator*=(double koefficient)
+        {
+            x *= koefficient;
+            y *= koefficient;
+
+            return *this;
+        }
+
+        Vector Vector::operator*(double koefficient) const
+        {
+            Vector toReturn = *this;
+
+            toReturn *= koefficient;
+
+            return toReturn;
+        }
+
+        Vector& Vector::operator/=(double koefficient)
+        {
+            x /= koefficient;
+            y /= koefficient;
+
+            return *this;
+        }
+
+        Vector Vector::operator/(double koefficient) const
+        {
+            Vector toReturn = *this;
+
+            toReturn /= koefficient;
+
+            return toReturn;
+        }
+
+        double Vector::operator*(const Vector& vector) const
+        {
+            return (x * vector.x + y * vector.y);
+        }
+
+    //}
+    //-----------------------------------------------------------------------------
+
+
+//}
+//-----------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+//{ Object
+//----------------------------------------------------------------------------
+
+    struct Object
+    {
+
+        // Constructor && destructor:
+
+            Object(Vector newCoords, Vector newSpeed, unsigned int mass, COLORREF newColor);
+
+        // Variables:
+
+            Vector coords;
+            Vector speed;
+
+            unsigned int mass;
+
+            COLORREF color;
+    };
+
+
+    //----------------------------------------------------------------------------
+    //{ Constructor && destructor
+    //----------------------------------------------------------------------------
+
+        Object::Object(Vector newCoords, Vector newSpeed, unsigned int newMass, COLORREF newColor) :
+            coords (newCoords),
+            speed  (newSpeed),
+            mass   (newMass),
+            color  (newColor)
+        {}
+
+
+    //}
+    //----------------------------------------------------------------------------
+
+//}
+//----------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+//{ Ball
+//----------------------------------------------------------------------------
+
+    struct Ball : public Object
+    {
+		public:
+
+            // Constructor:
+
+                Ball(Vector newCoords, Vector newSpeed, unsigned int newMass, COLORREF newColor, unsigned int newRadius);
+
+            // Functions:
+
+                bool collision(const Ball* ball) const;
+
+            // Variables:
+
+                unsigned int radius;
+    };
+
+
+    //----------------------------------------------------------------------------
+    //{ Constructor && destructor
+    //----------------------------------------------------------------------------
+
+        Ball::Ball(Vector newCoords, Vector newSpeed, unsigned int newMass, COLORREF newColor, unsigned int newRadius) :
+            Object(newCoords, newSpeed, newMass, newColor),
+            radius (newRadius)
+        {}
+
+
+    //}
+    //----------------------------------------------------------------------------
+
+
+    //----------------------------------------------------------------------------
+    //{ Functions
+    //----------------------------------------------------------------------------
+
+        bool Ball::collision(const Ball* ball) const
+        {
+            return pow(coords.x - ball->coords.x, 2) + pow(coords.y - ball->coords.y, 2) < pow(radius + ball->radius, 2);
+        }
+
+
+        Ball& Ball::interact(Ball* ball)
+        {
+            if (!collision(ball)) return *this;
+
+            Vector moveVector = coords - ball->coords;
+
+            moveVector.normalize();
+            moveVector *= (radius + ball->radius);
+
+            coords = ball->coords + moveVector;
+
+
+            Vector speed0Tmp = speed;
+            Vector speed1Tmp = ball->speed;
+
+            speed       -= speed1Tmp;
+            ball->speed -= speed1Tmp;
+
+
+            double moveVectorLength = moveVector.length();
+
+            speed = {(speed * moveVector) / moveVectorLength, 0};
+            speed.y = (speed0Tmp - speed).length();
+
+
+            speed.x /= 2;
+            ball->speed.x = (mass / ball->mass) * speed.x;
+
+
+            moveVector = {moveVector.x, -moveVector.y};
+
+
+
+
+            return *this;
+        }
+
+    //}
+    //----------------------------------------------------------------------------
+
+//}
+//----------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+//{ Box
+//----------------------------------------------------------------------------
+
+    struct Box : public Object
+    {
+        Box(Vector newCoords, Vector newSpeed, unsigned int newMass, COLORREF newColor, unsigned int newWidth, unsigned int newHeight);
+
+        unsigned int width;
+        unsigned int height;
+    };
+
+
+    //----------------------------------------------------------------------------
+    //{ Constructor && destructor
+    //----------------------------------------------------------------------------
+
+        Box::Box(Vector newCoords, Vector newSpeed, unsigned int newMass, COLORREF newColor, unsigned int newWidth, unsigned int newHeight) :
+            Object(newCoords, newSpeed, newMass, newColor),
+            width  (newWidth),
+            height (newHeight)
+        {}
+
+
+    //}
+    //----------------------------------------------------------------------------
+
+//}
+//----------------------------------------------------------------------------

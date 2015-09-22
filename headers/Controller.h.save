@@ -1,0 +1,30 @@
+#pragma once
+
+
+void controlEverything(Model* model, Renderer* renderer)
+{
+    COLORREF colormap[4] =
+    {
+        RGB(255,   0,  0),
+        RGB(255, 250,  0)
+    } 
+
+    while (!GetAsyncKeyState(VK_ESCAPE))
+    {
+        model->move();
+        model->wallBounce();
+        model->ballBounce();
+
+        renderer->startRendering();
+        renderer->clear();
+
+        for (std::vector<Ball>::iterator i = model->getBallArrayPointer()->begin();
+             i != model->getBallArrayPointer()->end(); i++)
+        {
+            renderer->render(*i, 0, 10);
+        }
+
+        renderer->startRendering();
+        txSleep(1);
+    }
+}
